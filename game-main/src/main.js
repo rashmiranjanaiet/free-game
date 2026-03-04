@@ -350,7 +350,11 @@ const multiplayerConfig = {
   missileDamage: 20,
   maxHp: 100
 };
-const boostTargetSpeed = 100 * planeSpeedMultiplier;
+const boostConfig = {
+  tapMultiplier: 1.18,
+  minTapSpeed: 42,
+  maxTapSpeed: 130
+};
 const missileConfig = { speed: 220, lifetime: 4.2, cooldown: 0.22, maxActive: 18 };
 const missileFocusConfig = { duration: 0.1, timeScale: 0.2 };
 let missileCooldown = 0;
@@ -400,6 +404,7 @@ function cycleCameraMode() {
 }
 
 function setStatus(msg) {
+  if (!statusLine) return;
   statusLine.textContent = msg;
 }
 
@@ -410,7 +415,11 @@ function updateHealthDisplay() {
 
 function updatePlayersCount() {
   if (!playersValue) return;
-  playersValue.textContent = String(1 + remotePlayers.size);
+  let alive = localHp > 0 ? 1 : 0;
+  for (const remote of remotePlayers.values()) {
+    if (remote.hp > 0) alive += 1;
+  }
+  playersValue.textContent = String(alive);
 }
 
 function getCompassDirection(fromPos, toPos) {
@@ -424,26 +433,21 @@ function getCompassDirection(fromPos, toPos) {
 
 function updatePlayerSignalsPanel() {
   if (!playerSignalsList) return;
-  if (remotePlayers.size === 0) {
-    playerSignalsList.innerHTML = '<div class="signal-empty">No other players</div>';
-    return;
-  }
 
   const sourcePos = planeRoot.position;
   const entries = [];
   for (const remote of remotePlayers.values()) {
     if (!remote.initialized) continue;
+    if (remote.hp <= 0) continue;
     const dist = sourcePos.distanceTo(remote.root.position);
     entries.push({
       id: remote.id,
-      dist,
-      hp: remote.hp,
-      dir: getCompassDirection(sourcePos, remote.root.position)
+      dist
     });
   }
 
   if (entries.length === 0) {
-    playerSignalsList.innerHTML = '<div class="signal-empty">Syncing players...</div>';
+    playerSignalsList.innerHTML = '<div class="signal-empty">No other players</div>';
     return;
   }
 
@@ -452,7 +456,7 @@ function updatePlayerSignalsPanel() {
   for (const entry of entries) {
     const row = document.createElement("div");
     row.className = "signal-item";
-    row.textContent = `${entry.id} | ${entry.dir} | ${entry.dist.toFixed(0)}m | HP ${Math.round(entry.hp)}`;
+    row.textContent = `${entry.id} - ${entry.dist.toFixed(0)} m`;
     frag.appendChild(row);
   }
   playerSignalsList.replaceChildren(frag);
@@ -864,7 +868,14 @@ function applySpeedBoost() {
   if (!running || !planeMesh) return;
 
   const maxForwardSpeed = Math.max(0, planeState.maxSpeed);
-  const targetSpeed = THREE.MathUtils.clamp(boostTargetSpeed, 0, maxForwardSpeed);
+  const boostCap = THREE.MathUtils.clamp(boostConfig.maxTapSpeed, 0, maxForwardSpeed);
+  const forwardSpeed = Math.max(0, planeState.speed);
+  const boostedFromCurrent = forwardSpeed * boostConfig.tapMultiplier;
+  const targetSpeed = THREE.MathUtils.clamp(
+    Math.max(boostedFromCurrent, boostConfig.minTapSpeed),
+    0,
+    boostCap
+  );
   const throttleForTarget = maxForwardSpeed <= 0
     ? 0
     : (targetSpeed / maxForwardSpeed) * speedControlConfig.maxThrottle;
@@ -874,8 +885,6 @@ function applySpeedBoost() {
     speedControlConfig.minThrottle,
     speedControlConfig.maxThrottle
   );
-  planeState.speed = targetSpeed;
-  speedValue.textContent = `${targetSpeed.toFixed(0)} km/h`;
 }
 
 function setMissileButtonState() {
@@ -1446,8 +1455,12 @@ function updateFlight(dt) {
     prop.rotateX(spin * dt);
   }
 
-  speedValue.textContent = `${planeState.speed.toFixed(0)} km/h`;
-  altitudeValue.textContent = `${planeRoot.position.y.toFixed(0)} m`;
+  if (speedValue) {
+    speedValue.textContent = `${planeState.speed.toFixed(0)} km/h`;
+  }
+  if (altitudeValue) {
+    altitudeValue.textContent = `${planeRoot.position.y.toFixed(0)} m`;
+  }
 }
 
 function updateCamera(dt) {
@@ -1567,9 +1580,11 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-startBtn.addEventListener("click", () => {
-  resetGame();
-});
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    resetGame();
+  });
+}
 for (const button of holdControlButtons) {
   bindHoldControlButton(button);
 }
