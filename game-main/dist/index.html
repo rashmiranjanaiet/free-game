@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLB Flight Sim</title>
+  <script type="module" crossorigin src="/assets/index-CIx_8m4y.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-C2N-_Qao.css">
+</head>
+<body>
+  <div id="introVideoOverlay" aria-label="Intro video">
+    <video id="introVideo" autoplay muted playsinline preload="auto">
+      <source src="/media/top-banner.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div id="hud">
+    <div class="stat">Speed: <span id="speedValue">0 km/h</span></div>
+    <div class="stat">Altitude: <span id="altitudeValue">0 m</span></div>
+    <div class="stat">Health: <span id="healthValue">100%</span></div>
+    <div class="stat">Players: <span id="playersValue">1</span></div>
+    <div id="playerSignals" class="help">
+      <div class="signals-title">Player Signals</div>
+      <div id="playerSignalsList" class="signals-list">No other players</div>
+    </div>
+    <button id="startBtn" type="button">Start / Restart</button>
+    <button id="boostBtn" type="button">Boost 100 km/h</button>
+    <button id="missileBtn" type="button">Fire Missile</button>
+    <div class="help">W or Up reverse | S or Down forward | A/D or left-right turn | Space/Shift climb-descend</div>
+    <div class="help">Boost: click button to set speed to 100 km/h</div>
+    <div class="help">Missile: click button or press F</div>
+    <div class="help">Tap left/right once: plane turns, then goes straight new direction</div>
+    <div class="help">Views: C cycle, 1 Back, 2 Side, 3 Front</div>
+    <div class="help" id="statusLine">Loading scene...</div>
+  </div>
+  <div id="controlPad" aria-label="On-screen controls">
+    <div class="pad-row">
+      <button class="pad-btn hold-btn" type="button" data-key="ArrowUp">Forward</button>
+      <button class="pad-btn hold-btn" type="button" data-key="ArrowDown">Reverse</button>
+    </div>
+    <div class="pad-row">
+      <button class="pad-btn hold-btn" type="button" data-key="ArrowLeft">Left</button>
+      <button class="pad-btn hold-btn" type="button" data-key="ArrowRight">Right</button>
+    </div>
+    <div class="pad-row">
+      <button class="pad-btn hold-btn" type="button" data-key="Space">Climb</button>
+      <button class="pad-btn hold-btn" type="button" data-key="ShiftLeft,ShiftRight">Descend</button>
+    </div>
+    <div class="pad-row">
+      <button class="pad-btn action-btn" id="padBoostBtn" type="button">Boost 100</button>
+      <button class="pad-btn action-btn" id="padMissileBtn" type="button">Missile</button>
+    </div>
+    <div class="pad-row">
+      <button class="pad-btn action-btn" id="padViewBtn" type="button">View</button>
+      <button class="pad-btn action-btn" id="padStartBtn" type="button">Restart</button>
+    </div>
+  </div>
+  <canvas id="game"></canvas>
+
+</body>
+</html>
